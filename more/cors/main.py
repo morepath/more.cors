@@ -90,7 +90,10 @@ def cors_tween(app, handler):
         else:
             response = handler(request)
 
-        context = resolve_model(request) or app
+        try:
+            context = resolve_model(request) or app
+        except:
+            context = app
 
         _marker = []
         if getattr(request, 'view_name', _marker) is _marker:
