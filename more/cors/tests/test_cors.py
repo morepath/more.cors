@@ -45,10 +45,15 @@ def post_view2(context, request):
     return {'view': 'view2-post'}
 
 
-App.cors(model=Root, view_name='view2',
-         allowed_headers=['Cache-Control'], expose_headers=['Cookie'],
-         allowed_origin='http://localhost.localdomain', allow_credentials=False,
-         max_age=10)
+App.cors(
+    model=Root,
+    view_name='view2',
+    allowed_headers=['Cache-Control'],
+    expose_headers=['Cookie'],
+    allowed_origin='http://localhost.localdomain',
+    allow_credentials=False,
+    max_age=10
+)
 
 
 def get_client(app):
@@ -66,7 +71,9 @@ def test_cors_preflight():
     r = c.options('/', headers={'Origin': 'http://hello.world.com/'})
 
     assert r.headers.get(
-        'Access-Control-Allow-Methods').split(',') == ['OPTIONS', 'GET', 'POST']
+        'Access-Control-Allow-Methods').split(',') == ['OPTIONS',
+                                                       'GET',
+                                                       'POST']
     assert r.headers.get('Access-Control-Allow-Origin') == '*'
     assert r.headers.get(
         'Access-Control-Allow-Headers').split(',') == ['Content-Type',

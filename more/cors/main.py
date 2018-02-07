@@ -10,8 +10,8 @@ class App(morepath.App):
     _cors = dectate.directive(action.CORSAction)
 
     @classmethod
-    def cors(klass, *args, **kwargs):
-        klass._cors(*args, **kwargs)(None)
+    def cors(cls, *args, **kwargs):
+        cls._cors(*args, **kwargs)(None)
 
     @reg.dispatch_method(
         reg.match_instance('model'),
