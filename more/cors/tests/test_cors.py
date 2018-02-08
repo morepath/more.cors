@@ -11,6 +11,10 @@ class Object(object):
     pass
 
 
+class FailedObject(object):
+    pass
+
+
 class Root(object):
     pass
 
@@ -23,6 +27,11 @@ def get_root(request):
 @App.path(path='obj', model=Object)
 def get_object(request):
     return Object()
+
+
+@App.path(path='failedobj', model=FailedObject)
+def get_failed_object(request):
+    raise Exception()
 
 
 @App.json(model=Root)
@@ -95,3 +104,12 @@ def text_cors_override():
 
     assert r.headers.get('Access-Control-Allow-Credentials') == 'false'
     assert r.headers.get('Access-Control-Max-Age') == '10'
+
+
+def test_cors_failed_View():
+
+    c = get_client(App)
+
+    r = c.options('/failedobj', expect_errors=True)
+
+    assert r.status_code == 404
