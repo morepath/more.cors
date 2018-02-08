@@ -140,7 +140,8 @@ def test_cors_no_allowed_verbs():
         status=404
     )
 
-def test_cors_failed_View():
+
+def test_cors_failed_view():
 
     c = get_client(App)
 
