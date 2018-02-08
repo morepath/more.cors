@@ -11,6 +11,10 @@ class Object(object):
     pass
 
 
+class FailedObject(object):
+    pass
+
+
 class Root(object):
     pass
 
@@ -23,6 +27,11 @@ def get_root(request):
 @App.path(path='obj', model=Object)
 def get_object(request):
     return Object()
+
+
+@App.path(path='failedobj', model=FailedObject)
+def get_failed_object(request):
+    raise Exception()
 
 
 @App.json(model=Root)
@@ -130,3 +139,11 @@ def test_cors_no_allowed_verbs():
         headers={'Origin': 'http://hello.world.com/'},
         status=404
     )
+
+def test_cors_failed_View():
+
+    c = get_client(App)
+
+    r = c.options('/failedobj', expect_errors=True)
+
+    assert r.status_code == 404

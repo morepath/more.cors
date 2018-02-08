@@ -92,7 +92,7 @@ def cors_tween(app, handler):
 
         try:
             context = resolve_model(request) or app
-        except:
+        except Exception:
             context = app
 
         _marker = []
