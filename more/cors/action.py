@@ -1,6 +1,4 @@
 import dectate
-import reg
-from morepath.directive import PathCompositeAction
 
 
 class CORSAction(dectate.Action):

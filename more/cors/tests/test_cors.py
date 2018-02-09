@@ -54,10 +54,15 @@ def post_view2(context, request):
     return {'view': 'view2-post'}
 
 
-App.cors(model=Root, view_name='view2',
-         allowed_headers=['Cache-Control'], expose_headers=['Cookie'],
-         allowed_origin='http://localhost.localdomain', allow_credentials=False,
-         max_age=10)
+App.cors(
+    model=Root,
+    view_name='view2',
+    allowed_headers=['Cache-Control'],
+    expose_headers=['Cookie'],
+    allowed_origin='http://localhost.localdomain',
+    allow_credentials=False,
+    max_age=10
+)
 
 
 def get_client(app):
@@ -75,7 +80,9 @@ def test_cors_preflight():
     r = c.options('/', headers={'Origin': 'http://hello.world.com/'})
 
     assert r.headers.get(
-        'Access-Control-Allow-Methods').split(',') == ['OPTIONS', 'GET', 'POST']
+        'Access-Control-Allow-Methods').split(',') == ['OPTIONS',
+                                                       'GET',
+                                                       'POST']
     assert r.headers.get('Access-Control-Allow-Origin') == '*'
     assert r.headers.get(
         'Access-Control-Allow-Headers').split(',') == ['Content-Type',
@@ -88,7 +95,7 @@ def test_cors_preflight():
     assert r.headers.get('Access-Control-Max-Age') == '60'
 
 
-def text_cors_override():
+def test_cors_override():
     c = get_client(App)
     r = c.options('/view2', headers={'Origin': 'http://hello.world.com/'})
 
@@ -106,7 +113,35 @@ def text_cors_override():
     assert r.headers.get('Access-Control-Max-Age') == '10'
 
 
-def test_cors_failed_View():
+def test_cors_non_preflight():
+    c = get_client(App)
+
+    r = c.get('/', headers={'Origin': 'http://hello.world.com/'})
+
+    assert r.headers.get('Access-Control-Allow-Origin') == '*'
+    assert r.headers.get(
+        'Access-Control-Expose-Headers').split(',') == ['Content-Type',
+                                                        'Authorization']
+
+    assert r.headers.get('Access-Control-Allow-Credentials') == 'true'
+    assert r.headers.get('Access-Control-Max-Age') is None
+
+
+def test_cors_no_allowed_verbs():
+    @App.setting(section='cors', name='allowed_verbs')
+    def get_allowed_verbs():
+        return []
+
+    c = get_client(App)
+
+    c.options(
+        '/',
+        headers={'Origin': 'http://hello.world.com/'},
+        status=404
+    )
+
+
+def test_cors_failed_view():
 
     c = get_client(App)
 
