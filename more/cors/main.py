@@ -77,7 +77,7 @@ def cors_settings():
         'expose_headers': ['Content-Type', 'Authorization'],
         'allowed_headers': ['Content-Type', 'Authorization'],
         'max_age': 60,
-        'allow_credentials': True
+        'allow_credentials': False
     }
 
 
