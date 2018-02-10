@@ -135,8 +135,8 @@ def cors_tween(app, handler):
 
         # Access-Control-Allow-Credentials
         allow_credentials = app.get_cors_allow_credentials(context, request)
-        response.headers.add('Access-Control-Allow-Credentials',
-                             str(allow_credentials).lower())
+        if allow_credentials is True:
+            response.headers.add('Access-Control-Allow-Credentials', 'true')
 
         if preflight:
             max_age = app.get_cors_max_age(context, request)

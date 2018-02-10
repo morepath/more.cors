@@ -109,7 +109,7 @@ def test_cors_override():
     assert r.headers.get(
         'Access-Control-Expose-Headers').split(',') == ['Cookie']
 
-    assert r.headers.get('Access-Control-Allow-Credentials') == 'false'
+    assert r.headers.get('Access-Control-Allow-Credentials') is None
     assert r.headers.get('Access-Control-Max-Age') == '10'
 
 
