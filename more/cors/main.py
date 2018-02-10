@@ -127,6 +127,8 @@ def cors_tween(app, handler):
             allowed_origin = app.get_cors_allowed_origin(
                 context, request, requested_origin)
             response.headers.add('Access-Control-Allow-Origin', allowed_origin)
+            if allowed_origin and allowed_origin != '*':
+                response.headers.add('Vary', 'Origin')
 
         # Access-Control-Expose-Headers
         exposed_headers = app.get_cors_expose_headers(context, request)
