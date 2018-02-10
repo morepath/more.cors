@@ -60,7 +60,7 @@ App.cors(
     allowed_headers=['Cache-Control'],
     expose_headers=['Cookie'],
     allowed_origin='http://localhost.localdomain',
-    allow_credentials=False,
+    allow_credentials=True,
     max_age=10
 )
 
@@ -91,7 +91,7 @@ def test_cors_preflight():
         'Access-Control-Expose-Headers').split(',') == ['Content-Type',
                                                         'Authorization']
 
-    assert r.headers.get('Access-Control-Allow-Credentials') == 'true'
+    assert r.headers.get('Access-Control-Allow-Credentials') is None
     assert r.headers.get('Access-Control-Max-Age') == '60'
 
 
@@ -109,7 +109,7 @@ def test_cors_override():
     assert r.headers.get(
         'Access-Control-Expose-Headers').split(',') == ['Cookie']
 
-    assert r.headers.get('Access-Control-Allow-Credentials') is None
+    assert r.headers.get('Access-Control-Allow-Credentials') == 'true'
     assert r.headers.get('Access-Control-Max-Age') == '10'
 
 
@@ -123,7 +123,7 @@ def test_cors_non_preflight():
         'Access-Control-Expose-Headers').split(',') == ['Content-Type',
                                                         'Authorization']
 
-    assert r.headers.get('Access-Control-Allow-Credentials') == 'true'
+    assert r.headers.get('Access-Control-Allow-Credentials') is None
     assert r.headers.get('Access-Control-Max-Age') is None
 
 
