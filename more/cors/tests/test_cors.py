@@ -1,4 +1,5 @@
 from webtest import TestApp as Client
+from webob.exc import HTTPUnauthorized 
 import morepath
 from more.cors import CORSApp
 
@@ -12,6 +13,10 @@ class Object(object):
 
 
 class FailedObject(object):
+    pass
+
+
+class UnauthorizedObject(object):
     pass
 
 
@@ -32,6 +37,11 @@ def get_object(request):
 @App.path(path='failedobj', model=FailedObject)
 def get_failed_object(request):
     raise Exception()
+
+
+@App.path(path='unauthorized', model=UnauthorizedObject)
+def get_unauthorized_object(request):
+    raise HTTPUnauthorized
 
 
 @App.json(model=Root)
@@ -127,6 +137,16 @@ def test_cors_non_preflight():
     assert r.headers.get('Access-Control-Max-Age') is None
 
 
+def test_cors_unauthorized_preflight():
+    c = get_client(App)
+
+    r = c.options('/unauthorized')
+
+    assert r.headers.get(
+        'Access-Control-Allow-Methods').split(',') \
+            == ['OPTIONS'] + c.app.settings.cors.allowed_verbs
+
+
 def test_cors_no_allowed_verbs():
     @App.setting(section='cors', name='allowed_verbs')
     def get_allowed_verbs():
@@ -148,3 +168,4 @@ def test_cors_failed_view():
     r = c.options('/failedobj', expect_errors=True)
 
     assert r.status_code == 404
+

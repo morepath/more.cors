@@ -28,7 +28,7 @@ class App(morepath.App):
                       lambda self, model, request,
                       requested_method: request.view_name))
     def get_cors_allowed_methods(self, model, request, requested_method):
-        if model == None:
+        if model is None:
             return self.settings.cors.allowed_verbs
         res = []
         for m in self.settings.cors.allowed_verbs:
@@ -97,7 +97,7 @@ def cors_tween(app, handler):
             context = resolve_model(request) or app
         except HTTPUnauthorized:
             context = None
-        except Exception as e:
+        except Exception:
             context = app
 
         _marker = []
