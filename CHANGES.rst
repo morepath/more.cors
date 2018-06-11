@@ -1,7 +1,7 @@
 CHANGES
 =======
 
-0.2 (unreleased)
+0.2 (2018-06-11)
 ----------------
 
 - Fix list of allowed verbs for failed (unauthorized) preflight (see `PR #4`_).
