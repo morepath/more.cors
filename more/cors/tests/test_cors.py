@@ -1,5 +1,5 @@
 from webtest import TestApp as Client
-from webob.exc import HTTPUnauthorized 
+from webob.exc import HTTPUnauthorized
 import morepath
 from more.cors import CORSApp
 
@@ -144,7 +144,7 @@ def test_cors_unauthorized_preflight():
 
     assert r.headers.get(
         'Access-Control-Allow-Methods').split(',') \
-            == ['OPTIONS'] + c.app.settings.cors.allowed_verbs
+        == ['OPTIONS'] + c.app.settings.cors.allowed_verbs
 
 
 def test_cors_no_allowed_verbs():
@@ -168,4 +168,3 @@ def test_cors_failed_view():
     r = c.options('/failedobj', expect_errors=True)
 
     assert r.status_code == 404
-
