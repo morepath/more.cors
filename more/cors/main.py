@@ -1,5 +1,6 @@
 import morepath
 from morepath.publish import resolve_model, get_view_name
+from webob.exc import HTTPUnauthorized
 import dectate
 import reg
 from . import action
@@ -27,6 +28,8 @@ class App(morepath.App):
                       lambda self, model, request,
                       requested_method: request.view_name))
     def get_cors_allowed_methods(self, model, request, requested_method):
+        if model == None:
+            return self.settings.cors.allowed_verbs
         res = []
         for m in self.settings.cors.allowed_verbs:
             f = self.get_view.by_predicates(
@@ -92,7 +95,9 @@ def cors_tween(app, handler):
 
         try:
             context = resolve_model(request) or app
-        except Exception:
+        except HTTPUnauthorized:
+            context = None
+        except Exception as e:
             context = app
 
         _marker = []
