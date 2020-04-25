@@ -8,19 +8,19 @@ class App(CORSApp):
     pass
 
 
-class Object(object):
+class Object:
     pass
 
 
-class FailedObject(object):
+class FailedObject:
     pass
 
 
-class UnauthorizedObject(object):
+class UnauthorizedObject:
     pass
 
 
-class Root(object):
+class Root:
     pass
 
 
