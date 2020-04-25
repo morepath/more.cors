@@ -49,6 +49,6 @@ setup(name='more.cors',
           ],
           pep8=[
               'flake8',
-              'pep8-naming',
+              'black',
           ],
       ))
