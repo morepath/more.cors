@@ -32,11 +32,11 @@ setup(
     include_package_data=True,
     namespace_packages=["more"],
     zip_safe=False,
-    install_requires=["setuptools", "morepath >= 0.19",],
+    install_requires=["setuptools", "morepath >= 0.19"],
     entry_points={"morepath": ["scan = more.cors"]},
     extras_require=dict(
         test=["pytest", "pytest-remove-stale-bytecode", "webtest"],
-        coverage=["pytest-cov",],
-        pep8=["flake8", "black",],
+        coverage=["pytest-cov"],
+        pep8=["flake8", "black"],
     ),
 )
