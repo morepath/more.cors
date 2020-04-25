@@ -11,24 +11,11 @@ __pycache__/
 /env/
 
 # Unit test / coverage reports
-.cache/
-.pytest_cache/
-/.coverage
-/htmlcov
-/.tox
+.cache
+.pytest_cache
+.coverage
+htmlcov
+.tox
 
-*.egg
-*.db
-bin/
-parts/
-develop-eggs/
-dev/
-venv/
-.installed.cfg
-.mr.developer.cfg
-._*
-.DS_Store
-*~
-*.swp
-.cache/
-/docs/_build
+# Sphinx documentation
+/doc/build/
