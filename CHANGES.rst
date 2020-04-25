@@ -12,6 +12,8 @@ CHANGES
 
 - Make Python 3.7 the default testing environment.
 
+- Add integration for the Black code formatter.
+
 
 0.2 (2018-06-11)
 ----------------
