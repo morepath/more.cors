@@ -6,7 +6,7 @@ long_description = (
     + open("CHANGES.rst", encoding="utf-8").read()
 )
 
-version = "0.3"
+version = "0.4.dev0"
 
 setup(
     name="more.cors",
