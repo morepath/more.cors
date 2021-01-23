@@ -1,3 +1,18 @@
+.. image:: https://github.com/morepath/more.cors/workflows/CI/badge.svg?branch=master
+   :target: https://github.com/morepath/more.cors/actions?workflow=CI
+   :alt: CI Status
+
+.. image:: https://coveralls.io/repos/github/morepath/more.cors/badge.svg?branch=master
+    :target: https://coveralls.io/github/morepath/more.cors?branch=master
+
+.. image:: https://img.shields.io/pypi/v/more.cors.svg
+  :target: https://pypi.org/project/more.cors/
+
+.. image:: https://img.shields.io/pypi/pyversions/more.cors.svg
+  :target: https://pypi.org/project/more.cors/
+
+
+
 more.cors: CORS support for Morepath
 ====================================
 
