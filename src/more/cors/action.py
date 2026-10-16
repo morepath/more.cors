@@ -2,7 +2,6 @@ import dectate
 
 
 class CORSAction(dectate.Action):
-
     filter_convert = {"model": dectate.convert_dotted_name}
     app_class_arg = True
 
@@ -39,9 +38,7 @@ class CORSAction(dectate.Action):
         allowed_headers = self.allowed_headers
         if allowed_headers is not None:
             app_class.get_cors_allowed_headers.register(
-                (
-                    lambda self, model, request, requested_headers: allowed_headers
-                ),
+                (lambda self, model, request, requested_headers: allowed_headers),
                 model=self.model,
                 view_name=self.view_name,
             )

@@ -1,13 +1,14 @@
-import morepath
-from morepath.publish import resolve_model, get_view_name
 from webob.exc import HTTPUnauthorized
+
 import dectate
+import morepath
 import reg
+from morepath.publish import get_view_name, resolve_model
+
 from . import action
 
 
 class App(morepath.App):
-
     _cors = dectate.directive(action.CORSAction)
 
     @classmethod
@@ -55,27 +56,21 @@ class App(morepath.App):
 
     @reg.dispatch_method(
         reg.match_instance("model"),
-        reg.match_key(
-            "view_name", lambda self, model, request: request.view_name
-        ),
+        reg.match_key("view_name", lambda self, model, request: request.view_name),
     )
     def get_cors_expose_headers(self, model, request):
         return self.settings.cors.expose_headers
 
     @reg.dispatch_method(
         reg.match_instance("model"),
-        reg.match_key(
-            "view_name", lambda self, model, request: request.view_name
-        ),
+        reg.match_key("view_name", lambda self, model, request: request.view_name),
     )
     def get_cors_allow_credentials(self, model, request):
         return self.settings.cors.allow_credentials
 
     @reg.dispatch_method(
         reg.match_instance("model"),
-        reg.match_key(
-            "view_name", lambda self, model, request: request.view_name
-        ),
+        reg.match_key("view_name", lambda self, model, request: request.view_name),
     )
     def get_cors_max_age(self, model, request):
         return self.settings.cors.max_age
@@ -127,13 +122,11 @@ def cors_tween(app, handler):
                 return request.ResponseClass(status_code=404)
             response.headers.add(
                 "Access-Control-Allow-Methods",
-                ",".join(["OPTIONS"] + allowed_methods),
+                ",".join(["OPTIONS", *allowed_methods]),
             )
 
         # Access-Control-Allow-Headers
-        requested_headers = request.headers.get(
-            "Access-Control-Request-Headers"
-        )
+        requested_headers = request.headers.get("Access-Control-Request-Headers")
 
         if preflight:
             allowed_headers = app.get_cors_allowed_headers(
@@ -156,9 +149,7 @@ def cors_tween(app, handler):
 
         # Access-Control-Expose-Headers
         exposed_headers = app.get_cors_expose_headers(context, request)
-        response.headers.add(
-            "Access-Control-Expose-Headers", ",".join(exposed_headers)
-        )
+        response.headers.add("Access-Control-Expose-Headers", ",".join(exposed_headers))
 
         # Access-Control-Allow-Credentials
         allow_credentials = app.get_cors_allow_credentials(context, request)

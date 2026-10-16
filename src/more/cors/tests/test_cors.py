@@ -1,5 +1,6 @@
-from webtest import TestApp as Client
 from webob.exc import HTTPUnauthorized
+from webtest import TestApp as Client
+
 import morepath
 from more.cors import CORSApp
 
@@ -119,15 +120,10 @@ def test_cors_override():
         "POST",
     ]
     assert (
-        r.headers.get("Access-Control-Allow-Origin")
-        == "http://localhost.localdomain"
+        r.headers.get("Access-Control-Allow-Origin") == "http://localhost.localdomain"
     )
-    assert r.headers.get("Access-Control-Allow-Headers").split(",") == [
-        "Cache-Control"
-    ]
-    assert r.headers.get("Access-Control-Expose-Headers").split(",") == [
-        "Cookie"
-    ]
+    assert r.headers.get("Access-Control-Allow-Headers").split(",") == ["Cache-Control"]
+    assert r.headers.get("Access-Control-Expose-Headers").split(",") == ["Cookie"]
 
     assert r.headers.get("Access-Control-Allow-Credentials") == "true"
     assert r.headers.get("Access-Control-Max-Age") == "10"
@@ -153,10 +149,10 @@ def test_cors_unauthorized_preflight():
 
     r = c.options("/unauthorized")
 
-    assert (
-        r.headers.get("Access-Control-Allow-Methods").split(",")
-        == ["OPTIONS"] + c.app.settings.cors.allowed_verbs
-    )
+    assert r.headers.get("Access-Control-Allow-Methods").split(",") == [
+        "OPTIONS",
+        *c.app.settings.cors.allowed_verbs,
+    ]
 
 
 def test_cors_no_allowed_verbs():
