@@ -2,9 +2,6 @@
    :target: https://github.com/morepath/more.cors/actions?workflow=CI
    :alt: CI Status
 
-.. image:: https://coveralls.io/repos/github/morepath/more.cors/badge.svg?branch=master
-    :target: https://coveralls.io/github/morepath/more.cors?branch=master
-
 .. image:: https://img.shields.io/pypi/v/more.cors.svg
   :target: https://pypi.org/project/more.cors/
 
@@ -97,7 +94,7 @@ This can be used to specify settings for a single view:
         view_name='view2',
         allowed_headers=['Cache-Control'],
         expose_headers=['Cookie'],
-        allowed_origin='http://foo.com',
+        allowed_origin='https://foo.com',
         allow_credentials=True,
         max_age=10
     )
