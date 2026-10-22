@@ -39,7 +39,14 @@ class CORSAction(dectate.Action):
         allow_credentials: bool | None = None,
         max_age: int | None = None,
     ) -> None:
+        if not isinstance(allowed_origin, str) and "*" in (allowed_origin or ()):
+            raise ValueError(
+                "'*' can't be one of several allowed origins, "
+                "use allowed_origin='*' instead"
+            )
         self.model = model
+        # The default view of a model has the name "" (see
+        # ``morepath.publish.DEFAULT_NAME``). ``None`` would never match.
         self.view_name = view_name
         self.allowed_origin = allowed_origin
         self.allowed_headers = allowed_headers
