@@ -172,6 +172,9 @@ App.cors(
     allow_credentials=True,
 )
 
+App.cors(model=Collection, allowed_origin="http://collection.example")
+
+
 def get_client(app: type[CORSApp]) -> Client:
     # equivalent to ``class Tapp(app): pass``, which mypy can't check
     tapp = cast("type[CORSApp]", types.new_class("Tapp", (app,)))
@@ -240,6 +243,64 @@ def test_cors_non_preflight() -> None:
 
     assert r.headers.get("Access-Control-Allow-Credentials") is None
     assert r.headers.get("Access-Control-Max-Age") is None
+
+
+def test_cors_override_non_preflight() -> None:
+    c = get_client(App)
+
+    r = c.get("/view2", headers={"Origin": "http://hello.world.com/"})
+
+    assert r.json == {"view": "view2"}
+    assert (
+        r.headers.get("Access-Control-Allow-Origin") == "http://localhost.localdomain"
+    )
+    assert r.headers.get("Access-Control-Expose-Headers") == "Cookie"
+    assert r.headers.get("Access-Control-Allow-Credentials") == "true"
+
+
+def test_cors_override_other_model_preflight_and_actual_request() -> None:
+    # The settings that make the preflight succeed must also be sent with
+    # the actual request, otherwise the browser rejects its response.
+    c = get_client(App)
+    origin = {"Origin": "http://object.example"}
+
+    r = c.options("/obj", headers=origin)
+    assert r.headers.get("Access-Control-Allow-Origin") == ("http://object.example")
+    assert r.headers.get("Access-Control-Allow-Credentials") == "true"
+
+    for r in (c.get("/obj", headers=origin), c.post("/obj", headers=origin)):
+        assert r.headers.get("Access-Control-Allow-Origin") == ("http://object.example")
+        assert r.headers.get("Access-Control-Allow-Credentials") == "true"
+
+    # other models are not affected
+    r = c.get("/", headers=origin)
+    assert r.headers.get("Access-Control-Allow-Origin") == "*"
+    assert r.headers.get("Access-Control-Allow-Credentials") is None
+
+
+def test_cors_override_falsy_model() -> None:
+    c = get_client(App)
+    origin = {"Origin": "http://collection.example"}
+
+    r = c.options("/collection", headers=origin)
+    assert r.headers.get("Access-Control-Allow-Origin") == ("http://collection.example")
+
+    r = c.get("/collection", headers=origin)
+    assert r.json == {"view": "collection"}
+    assert r.headers.get("Access-Control-Allow-Origin") == ("http://collection.example")
+
+
+def test_cors_error_response() -> None:
+    # Without CORS headers the browser would hide the real error.
+    c = get_client(App)
+
+    r = c.get(
+        "/doesnotexist",
+        headers={"Origin": "http://hello.world.com/"},
+        status=404,
+    )
+
+    assert r.headers.get("Access-Control-Allow-Origin") == "*"
 
 
 def test_cors_unauthorized_preflight() -> None:
