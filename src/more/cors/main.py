@@ -1,43 +1,100 @@
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, Any, Protocol, cast
+
 from webob.exc import HTTPUnauthorized
 
 import dectate
 import morepath
 import reg
-from morepath.publish import get_view_name, resolve_model
+from morepath.publish import resolve_model
 
 from . import action
+
+if TYPE_CHECKING:
+    from collections.abc import Sequence
+
+    from webob.response import Response
+
+    from morepath.request import Request
+    from morepath.types import Tween
+
+
+class _CORSSettings(Protocol):
+    """The settings in the ``cors`` section, see ``cors_settings`` below."""
+
+    allowed_verbs: list[str]
+    allowed_origin: str | Sequence[str] | None
+    expose_headers: list[str]
+    allowed_headers: list[str]
+    max_age: int
+    allow_credentials: bool
+
+
+def _view_name(*, request: Request[Any], **kwargs: object) -> str | None:
+    """Dispatch key of the ``get_cors_*`` methods: the name of the view.
+
+    Reg calls this with the arguments of the dispatch method, as keyword
+    arguments.
+    """
+    return request.view_name
 
 
 class App(morepath.App):
     _cors = dectate.directive(action.CORSAction)
 
     @classmethod
-    def cors(cls, *args, **kwargs):
-        cls._cors(*args, **kwargs)(None)
+    def cors(
+        cls,
+        model: type[object],
+        view_name: str = "",
+        allowed_origin: str | Sequence[str] | None = None,
+        allowed_headers: list[str] | None = None,
+        expose_headers: list[str] | None = None,
+        allow_credentials: bool | None = None,
+        max_age: int | None = None,
+    ) -> None:
+        cls._cors(
+            model,
+            view_name,
+            allowed_origin,
+            allowed_headers,
+            expose_headers,
+            allow_credentials,
+            max_age,
+        )(None)
+
+    @property
+    def _cors_settings(self) -> _CORSSettings:
+        return cast("_CORSSettings", self.settings.cors)
 
     @reg.dispatch_method(
         reg.match_instance("model"),
-        reg.match_key(
-            "view_name",
-            lambda self, model, request, requested_origin: request.view_name,
-        ),
+        reg.match_key("view_name", _view_name),
     )
-    def get_cors_allowed_origin(self, model, request, requested_origin):
+    def get_cors_allowed_origin(
+        self,
+        model: object | None,
+        request: Request[Any],
+        requested_origin: str | None,
+    ) -> str | None:
         return self.settings.cors.allowed_origin
 
     @reg.dispatch_method(
         reg.match_instance("model"),
-        reg.match_key(
-            "view_name",
-            lambda self, model, request, requested_method: request.view_name,
-        ),
+        reg.match_key("view_name", _view_name),
     )
-    def get_cors_allowed_methods(self, model, request, requested_method):
+    def get_cors_allowed_methods(
+        self,
+        model: object | None,
+        request: Request[Any],
+        requested_method: str | None,
+    ) -> list[str]:
         if model is None:
-            return self.settings.cors.allowed_verbs
-        res = []
-        for m in self.settings.cors.allowed_verbs:
-            f = self.get_view.by_predicates(
+            return self._cors_settings.allowed_verbs
+        res: list[str] = []
+        for m in self._cors_settings.allowed_verbs:
+            f = request.app.get_view.by_predicates(
                 model=model.__class__, name=request.view_name, request_method=m
             )
             if f and f.component:
@@ -46,41 +103,47 @@ class App(morepath.App):
 
     @reg.dispatch_method(
         reg.match_instance("model"),
-        reg.match_key(
-            "view_name",
-            lambda self, model, request, requested_headers: request.view_name,
-        ),
+        reg.match_key("view_name", _view_name),
     )
-    def get_cors_allowed_headers(self, model, request, requested_headers):
-        return self.settings.cors.allowed_headers
+    def get_cors_allowed_headers(
+        self,
+        model: object | None,
+        request: Request[Any],
+        requested_headers: str | None,
+    ) -> list[str]:
+        return self._cors_settings.allowed_headers
 
     @reg.dispatch_method(
         reg.match_instance("model"),
-        reg.match_key("view_name", lambda self, model, request: request.view_name),
+        reg.match_key("view_name", _view_name),
     )
-    def get_cors_expose_headers(self, model, request):
-        return self.settings.cors.expose_headers
+    def get_cors_expose_headers(
+        self, model: object | None, request: Request[Any]
+    ) -> list[str]:
+        return self._cors_settings.expose_headers
 
     @reg.dispatch_method(
         reg.match_instance("model"),
-        reg.match_key("view_name", lambda self, model, request: request.view_name),
+        reg.match_key("view_name", _view_name),
     )
-    def get_cors_allow_credentials(self, model, request):
-        return self.settings.cors.allow_credentials
+    def get_cors_allow_credentials(
+        self, model: object | None, request: Request[Any]
+    ) -> bool:
+        return self._cors_settings.allow_credentials
 
     @reg.dispatch_method(
         reg.match_instance("model"),
-        reg.match_key("view_name", lambda self, model, request: request.view_name),
+        reg.match_key("view_name", _view_name),
     )
-    def get_cors_max_age(self, model, request):
-        return self.settings.cors.max_age
+    def get_cors_max_age(self, model: object | None, request: Request[Any]) -> int:
+        return self._cors_settings.max_age
 
 
 CORSApp = App
 
 
 @App.setting_section(section="cors")
-def cors_settings():
+def cors_settings() -> dict[str, Any]:
     return {
         "allowed_verbs": ["GET", "PUT", "POST", "PATCH", "DELETE", "OPTIONS"],
         "allowed_origin": "*",
@@ -92,8 +155,8 @@ def cors_settings():
 
 
 @App.tween_factory(over=morepath.EXCVIEW)
-def cors_tween(app, handler):
-    def cors_handler(request):
+def cors_tween(app: App, handler: Tween) -> Tween:
+    def cors_handler(request: Request[Any]) -> Response:
         preflight = request.method == "OPTIONS"
         if preflight:
             response = request.ResponseClass()
@@ -106,10 +169,6 @@ def cors_tween(app, handler):
             context = None
         except Exception:
             context = app
-
-        _marker = []
-        if getattr(request, "view_name", _marker) is _marker:
-            request.view_name = get_view_name(request.unconsumed)
 
         # Access-Control-Allow-Methods
         requested_method = request.headers.get("Access-Control-Request-Method")
@@ -137,15 +196,26 @@ def cors_tween(app, handler):
             )
 
         # Access-Control-Allow-Origin
+        allowed_origin: str | None = None
         requested_origin = request.headers.get("Origin")
 
         if requested_origin or preflight:
             allowed_origin = app.get_cors_allowed_origin(
                 context, request, requested_origin
             )
-            response.headers.add("Access-Control-Allow-Origin", allowed_origin)
-            if allowed_origin and allowed_origin != "*":
-                response.headers.add("Vary", "Origin")
+            if allowed_origin:
+                response.headers.add("Access-Control-Allow-Origin", allowed_origin)
+            varies = allowed_origin != "*"
+        else:
+            # The model isn't known, so go by the setting of the app.
+            settings = cast("_CORSSettings", app.settings.cors)
+            varies = settings.allowed_origin != "*"
+
+        # The response depends on the origin of the request, also if it
+        # doesn't get the header: for another origin, or without any.
+        # A cache must not hand it out for the wrong one.
+        if varies:
+            response.headers.add("Vary", "Origin")
 
         # Access-Control-Expose-Headers
         exposed_headers = app.get_cors_expose_headers(context, request)

@@ -1,4 +1,28 @@
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 import dectate
+
+if TYPE_CHECKING:
+    from collections.abc import Sequence
+
+    from .main import App
+
+
+def match_origin(
+    allowed_origin: str | Sequence[str] | None, requested_origin: str | None
+) -> str | None:
+    """The value of ``Access-Control-Allow-Origin`` for the origin requested.
+
+    A string or ``None`` is used as it is. For a sequence of origins it is
+    the requested origin if that is one of them, otherwise ``None``.
+    """
+    if allowed_origin is None or isinstance(allowed_origin, str):
+        return allowed_origin
+    if requested_origin in allowed_origin:
+        return requested_origin
+    return None
 
 
 class CORSAction(dectate.Action):
@@ -7,14 +31,14 @@ class CORSAction(dectate.Action):
 
     def __init__(
         self,
-        model,
-        view_name=None,
-        allowed_origin=None,
-        allowed_headers=None,
-        expose_headers=None,
-        allow_credentials=None,
-        max_age=None,
-    ):
+        model: type[object],
+        view_name: str = "",
+        allowed_origin: str | Sequence[str] | None = None,
+        allowed_headers: list[str] | None = None,
+        expose_headers: list[str] | None = None,
+        allow_credentials: bool | None = None,
+        max_age: int | None = None,
+    ) -> None:
         self.model = model
         self.view_name = view_name
         self.allowed_origin = allowed_origin
@@ -23,14 +47,16 @@ class CORSAction(dectate.Action):
         self.allow_credentials = allow_credentials
         self.max_age = max_age
 
-    def identifier(self, app_class):
+    def identifier(self, app_class: type[App]) -> str:
         return str((app_class, self.model, self.view_name))
 
-    def perform(self, obj, app_class):
+    def perform(self, obj: object, app_class: type[App]) -> None:
         allowed_origin = self.allowed_origin
         if allowed_origin is not None:
             app_class.get_cors_allowed_origin.register(
-                lambda self, model, request, requested_origin: allowed_origin,
+                lambda self, model, request, requested_origin: match_origin(
+                    allowed_origin, requested_origin
+                ),
                 model=self.model,
                 view_name=self.view_name,
             )
